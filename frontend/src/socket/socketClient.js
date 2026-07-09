@@ -5,10 +5,11 @@ let socket;
 
 export function connectSocket(token, dispatch) {
   const socketUrl = import.meta.env.VITE_SOCKET_URL;
-  if (!socketUrl) return undefined;
+  if (!socketUrl && !import.meta.env.DEV) return undefined;
 
   if (socket) socket.disconnect();
-  socket = io(socketUrl, { auth: { token } });
+  socket = socketUrl ? io(socketUrl, { auth: { token } }) : io({ auth: { token } });
+  socket.on('connect_error', (error) => console.error('Socket connection failed:', error.message));
   socket.on('task:created', (task) => dispatch(taskReceived(task)));
   socket.on('task:updated', (task) => dispatch(taskReceived(task)));
   socket.on('task:deleted', ({ taskId }) => dispatch(taskRemoved(taskId)));
