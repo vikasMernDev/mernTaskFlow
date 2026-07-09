@@ -1,28 +1,28 @@
 import { Task } from '../models/Task.js';
 import { errors } from '../utils/AppError.js';
-import { ensureAssigneeIsMember, requireProjectMember } from './projectAccessService.js';
+import { ensureAssigneeIsActiveUser, requireActiveProject } from './projectAccessService.js';
 
-export async function listTasks(projectId, userId) {
-  await requireProjectMember(projectId, userId);
+export async function listTasks(projectId) {
+  await requireActiveProject(projectId);
   return Task.find({ projectId }).sort({ updatedAt: -1 }).lean();
 }
 
-export async function getTask(projectId, taskId, userId) {
-  await requireProjectMember(projectId, userId);
+export async function getTask(projectId, taskId) {
+  await requireActiveProject(projectId);
   const task = await Task.findOne({ _id: taskId, projectId });
   if (!task) throw errors.notFound('Task');
   return task;
 }
 
 export async function createTask(projectId, input, userId) {
-  const project = await requireProjectMember(projectId, userId);
-  ensureAssigneeIsMember(project, input.assigneeId);
+  await requireActiveProject(projectId);
+  await ensureAssigneeIsActiveUser(input.assigneeId);
   return Task.create({ ...input, projectId, createdBy: userId });
 }
 
-export async function updateTask(projectId, taskId, input, userId) {
-  const project = await requireProjectMember(projectId, userId);
-  ensureAssigneeIsMember(project, input.assigneeId);
+export async function updateTask(projectId, taskId, input) {
+  await requireActiveProject(projectId);
+  await ensureAssigneeIsActiveUser(input.assigneeId);
   const task = await Task.findOne({ _id: taskId, projectId });
   if (!task) throw errors.notFound('Task');
   if (input.version !== undefined && input.version !== task.version) throw errors.conflict('Task changed; refresh and try again');
@@ -33,7 +33,7 @@ export async function updateTask(projectId, taskId, input, userId) {
 }
 
 export async function deleteTask(projectId, taskId, userId) {
-  const project = await requireProjectMember(projectId, userId);
+  const project = await requireActiveProject(projectId);
   const task = await Task.findOne({ _id: taskId, projectId });
   if (!task) throw errors.notFound('Task');
   const isOwner = project.ownerId.toString() === userId.toString();

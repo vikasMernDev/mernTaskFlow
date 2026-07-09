@@ -2,11 +2,11 @@ import * as taskService from '../services/taskService.js';
 import { emitToProject } from '../sockets/emitter.js';
 
 export async function list(req, res) {
-  res.json({ data: await taskService.listTasks(req.params.projectId, req.user.id) });
+  res.json({ data: await taskService.listTasks(req.params.projectId) });
 }
 
 export async function get(req, res) {
-  res.json({ data: await taskService.getTask(req.params.projectId, req.params.taskId, req.user.id) });
+  res.json({ data: await taskService.getTask(req.params.projectId, req.params.taskId) });
 }
 
 export async function create(req, res) {
@@ -16,7 +16,7 @@ export async function create(req, res) {
 }
 
 export async function update(req, res) {
-  const task = await taskService.updateTask(req.params.projectId, req.params.taskId, req.body, req.user.id);
+  const task = await taskService.updateTask(req.params.projectId, req.params.taskId, req.body);
   emitToProject(req.params.projectId, 'task:updated', task.toJSON());
   res.json({ data: task });
 }

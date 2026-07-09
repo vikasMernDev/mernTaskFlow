@@ -3,7 +3,7 @@ import { createClient } from 'redis';
 import { Server } from 'socket.io';
 import { env } from '../config/env.js';
 import { User } from '../models/User.js';
-import { requireProjectMember } from '../services/projectAccessService.js';
+import { requireActiveProject } from '../services/projectAccessService.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { setSocketServer } from './emitter.js';
 
@@ -38,7 +38,7 @@ export async function initializeSockets(httpServer) {
   io.on('connection', (socket) => {
     socket.on('project:join', async ({ projectId } = {}, acknowledge = () => {}) => {
       try {
-        await requireProjectMember(projectId, socket.user.id);
+        await requireActiveProject(projectId);
         await socket.join(`project:${projectId}`);
         acknowledge({ ok: true });
       } catch (error) {

@@ -1,7 +1,7 @@
 import * as projectService from '../services/projectService.js';
 
-export async function list(req, res) {
-  res.json({ data: await projectService.listProjects(req.user.id) });
+export async function list(_req, res) {
+  res.json({ data: await projectService.listProjects() });
 }
 
 export async function create(req, res) {
@@ -9,7 +9,7 @@ export async function create(req, res) {
 }
 
 export async function get(req, res) {
-  res.json({ data: await projectService.getProject(req.params.projectId, req.user.id) });
+  res.json({ data: await projectService.getProject(req.params.projectId) });
 }
 
 export async function update(req, res) {

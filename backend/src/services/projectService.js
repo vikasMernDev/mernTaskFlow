@@ -2,10 +2,10 @@ import { Project } from '../models/Project.js';
 import { Task } from '../models/Task.js';
 import { User } from '../models/User.js';
 import { errors } from '../utils/AppError.js';
-import { requireProjectMember, requireProjectOwner } from './projectAccessService.js';
+import { requireActiveProject, requireProjectOwner } from './projectAccessService.js';
 
-export function listProjects(userId) {
-  return Project.find({ archived: false, 'members.userId': userId })
+export function listProjects() {
+  return Project.find({ archived: false })
     .select('name description ownerId members createdAt updatedAt')
     .sort({ updatedAt: -1 })
     .lean();
@@ -15,8 +15,8 @@ export async function createProject(input, userId) {
   return Project.create({ ...input, ownerId: userId, members: [{ userId, role: 'owner' }] });
 }
 
-export async function getProject(projectId, userId) {
-  return requireProjectMember(projectId, userId);
+export async function getProject(projectId) {
+  return requireActiveProject(projectId);
 }
 
 export async function updateProject(projectId, input, userId) {
